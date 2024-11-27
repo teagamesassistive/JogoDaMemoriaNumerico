@@ -1,296 +1,232 @@
-<html><head><base href="." target="_blank" /><meta charset="UTF-8" /><title>Jogo da Memória com Números</title><style>
-body {
+<html><head><base href="." />
+<meta charset="utf-8"/>
+<title>Numemory</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
     min-height: 100vh;
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    color: white;
-}
-
-.game-container {
-    max-width: 600px;
     padding: 20px;
-    text-align: center;
-}
+    color: white;
+  }
 
-.cards-grid {
+  .game-container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin: 20px 0;
-}
+    max-width: 600px;
+    margin: 20px;
+  }
 
-.card {
-    aspect-ratio: 1;
-    background: #0f3460;
-    border-radius: 8px;
+  .card {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
     display: flex;
+    justify-content: center;
     align-items: center;
-    justify-content: center;
-    font-size: 24px;
     cursor: pointer;
-    border: 2px solid var(--theme-color, #e94560);
-}
+    font-size: 24px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+  }
 
-.card.flipped {
-    background: var(--theme-color, #e94560);
-}
+  .card:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+  }
 
-.card:not(.flipped) span {
-    display: none;
-}
+  .card.revealed {
+    background: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+  }
 
-.stats {
-    text-align: center;
-    margin: 20px 0;
-    font-size: 18px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
+  .card.correct {
+    background: rgba(0, 255, 0, 0.2);
+    border-color: rgba(0, 255, 0, 0.4);
+  }
 
-.button-container {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
+  .info-panel {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
     margin-bottom: 20px;
-}
+    text-align: center;
+  }
 
-button {
-    background: var(--theme-color, #e94560);
-    color: white;
+  button {
+    background: rgba(255, 255, 255, 0.2);
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
-    cursor: pointer;
+    color: white;
     font-size: 16px;
-    transition: transform 0.2s ease;
-}
+    cursor: pointer;
+    margin: 10px;
+  }
 
-button:hover {
-    transform: scale(1.05);
-}
+  button:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
 
-.win-message, .timeout-message {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(26, 26, 46, 0.95);
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    display: none;
-    box-shadow: 0 0 10px #00f7ff, 0 0 20px #00f7ff;
-    border: 2px solid #00f7ff;
-    min-width: 300px;
-}
-
-.win-message h2, .timeout-message h2 {
+  .difficulty-select {
+    margin: 10px;
+    padding: 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2);
     color: white;
-    margin-bottom: 20px;
-}
+    border: none;
+  }
 
-.win-message p, .timeout-message p {
+  .difficulty-select option {
+    background: #1a2a6c;
     color: white;
-    margin: 10px 0;
-}
-
-body.theme-red {
-    --theme-color: #e94560;
-}
-
-body.theme-green {
-    --theme-color: #4CAF50;
-}
-
-body.theme-yellow {
-    --theme-color: #FFC107;
-}
-
-.credits {
-    text-align: center;
-    margin-top: 20px;
-    color: white;
-}
-
-.credits a {
-    color: var(--theme-color, #e94560);
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.credits a:hover {
-    color: #00f7ff;
-}
-</style></head><body>
-<div class="game-container">
-    <h1>Jogo da Memória Numérico</h1>
-    <div class="stats">
-        <div>Tentativas: <span id="attempts">0</span></div>
-        <div>Tempo: <span id="timer">00:00</span></div>
-    </div>
-    <div class="cards-grid" id="grid"></div>
-    <div class="button-container">
-        <button onclick="resetGame()">Novo Jogo</button>
-        <button onclick="changeTheme()">Mudar Tema</button>
-    </div>
-    <div class="credits">
-        <p>Jogo Criado por Pedro Enrique</p>
-        <p><a href="https://jogosdeinclusao.github.io/">Acesse Jogos de Inclusão</a></p>
-    </div>
-</div>
-
-<div class="win-message" id="winMessage">
-    <h2>Parabéns!</h2>
-    <p>Você completou o jogo em <span id="finalAttempts">0</span> tentativas!</p>
-    <p>Tempo: <span id="finalTime">00:00</span></p>
-    <button onclick="resetGame()">Jogar Novamente</button>
-</div>
-
-<div class="timeout-message" id="timeoutMessage">
-    <h2>Fim de Jogo!</h2>
-    <p>O tempo limite de 1 hora foi atingido</p>
-    <button onclick="resetGame()">Tente Novamente</button>
-</div>
+  }
+</style>
+</head>
+<body>
+  <div class="info-panel">
+    <h1>Numemory</h1>
+    <p>Encontre os números em ordem crescente!</p>
+    <p>Tentativas: <span id="attempts">0</span></p>
+    <select class="difficulty-select" id="difficulty" onchange="resetGame()">
+      <option value="easy">Fácil (7 segundos)</option>
+      <option value="medium">Médio (4 segundos)</option>
+      <option value="hard">Difícil (2 segundos)</option>
+    </select>
+    <button onclick="resetGame()">Novo Jogo</button>
+  </div>
+  <div class="game-container" id="gameBoard"></div>
 
 <script>
-const gridSize = 16;
 let numbers = [];
-let flippedCards = [];
-let matchedPairs = 0;
+let revealed = [];
+let correctSequence = [];
 let attempts = 0;
-let timer;
-let seconds = 0;
-let isGameStarted = false;
+let currentNumber = 1;
+let isInitialReveal = false;
+let gameEnabled = false;
 
-// Load saved theme
-let currentTheme = localStorage.getItem('memoryGameTheme') || 'red';
-const themes = ['red', 'green', 'yellow'];
-
-// Apply saved theme
-document.body.classList.add(`theme-${currentTheme}`);
-
-function updateTimer() {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const timeString = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    document.getElementById('timer').textContent = timeString;
-
-    // Check for timeout (59:59)
-    if (minutes === 59 && remainingSeconds === 59) {
-        showTimeoutMessage();
-    }
-
-    return timeString;
-}
-
-function startTimer() {
-    if (!isGameStarted) {
-        isGameStarted = true;
-        timer = setInterval(() => {
-            seconds++;
-            updateTimer();
-        }, 1000);
-    }
-}
-
-function changeTheme() {
-    const currentIndex = themes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    currentTheme = themes[nextIndex];
-    
-    document.body.classList.remove('theme-red', 'theme-green', 'theme-yellow');
-    document.body.classList.add(`theme-${currentTheme}`);
-    
-    // Save theme preference
-    localStorage.setItem('memoryGameTheme', currentTheme);
-}
-
-function generateNumbers() {
+function initializeGame() {
     numbers = [];
-    for (let i = 0; i < gridSize/2; i++) {
-        const num = Math.floor(Math.random() * 99) + 1;
-        numbers.push(num, num);
-    }
-    numbers.sort(() => Math.random() - 0.5);
-}
+    revealed = [];
+    correctSequence = [];
+    currentNumber = 1;
+    attempts = 0;
+    gameEnabled = false;
+    document.getElementById('attempts').textContent = attempts;
 
-function createGrid() {
-    const grid = document.getElementById('grid');
-    grid.innerHTML = '';
+    // Create numbers array
+    for (let i = 1; i <= 16; i++) {
+        numbers.push(i);
+    }
+
+    // Shuffle numbers using Fisher-Yates algorithm
+    for (let i = numbers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+
+    // Create game board
+    const gameBoard = document.getElementById('gameBoard');
+    gameBoard.innerHTML = '';
+
     numbers.forEach((num, index) => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.setAttribute('data-index', index);
-        card.innerHTML = `<span>${num.toString().padStart(2, '0')}</span>`;
-        card.addEventListener('click', flipCard);
-        grid.appendChild(card);
+        card.dataset.number = num;
+        card.dataset.index = index;
+        card.addEventListener('click', handleCardClick);
+        gameBoard.appendChild(card);
     });
+
+    // Show all numbers initially
+    showAllNumbers();
 }
 
-function flipCard() {
-    startTimer();
-    if (flippedCards.length === 2) return;
-    if (this.classList.contains('flipped')) return;
+function getDifficultyTime() {
+    const difficulty = document.getElementById('difficulty').value;
+    switch(difficulty) {
+        case 'easy': return 7000;  // Changed to 7 seconds
+        case 'medium': return 4000; // Changed to 4 seconds
+        case 'hard': return 2000;  // Changed to 2 seconds
+        default: return 7000;
+    }
+}
 
-    this.classList.add('flipped');
-    flippedCards.push(this);
+function showAllNumbers() {
+    isInitialReveal = true;
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.textContent = card.dataset.number;
+        card.classList.add('revealed');
+    });
 
-    if (flippedCards.length === 2) {
-        attempts++;
-        document.getElementById('attempts').textContent = attempts;
-        
-        const index1 = flippedCards[0].getAttribute('data-index');
-        const index2 = flippedCards[1].getAttribute('data-index');
+    setTimeout(() => {
+        cards.forEach(card => {
+            if (!card.classList.contains('correct')) {
+                card.textContent = '';
+                card.classList.remove('revealed');
+            }
+        });
+        isInitialReveal = false;
+        gameEnabled = true;
+    }, getDifficultyTime());
+}
 
-        if (numbers[index1] === numbers[index2]) {
-            matchedPairs++;
-            flippedCards = [];
-            
-            if (matchedPairs === gridSize/2) {
-                setTimeout(showWinMessage, 500);
+function handleCardClick(event) {
+    if (!gameEnabled || isInitialReveal) return;
+    
+    const card = event.target;
+    const number = parseInt(card.dataset.number);
+    
+    if (!revealed.includes(card.dataset.index)) {
+        revealed.push(card.dataset.index);
+        card.textContent = number;
+        card.classList.add('revealed');
+
+        if (number === currentNumber) {
+            card.classList.add('correct');
+            correctSequence.push(number);
+            currentNumber++;
+
+            if (currentNumber > 16) {
+                setTimeout(() => {
+                    alert(`Parabéns! Você completou o jogo em ${attempts} tentativas!`);
+                }, 500);
             }
         } else {
+            attempts++;
+            document.getElementById('attempts').textContent = attempts;
+            
             setTimeout(() => {
-                flippedCards.forEach(card => card.classList.remove('flipped'));
-                flippedCards = [];
+                revealed = revealed.filter(index => {
+                    const cardElement = document.querySelector(`[data-index="${index}"]`);
+                    if (!cardElement.classList.contains('correct')) {
+                        cardElement.textContent = '';
+                        cardElement.classList.remove('revealed');
+                        return false;
+                    }
+                    return true;
+                });
             }, 1000);
         }
     }
 }
 
-function showWinMessage() {
-    clearInterval(timer);
-    document.getElementById('finalAttempts').textContent = attempts;
-    document.getElementById('finalTime').textContent = updateTimer();
-    document.getElementById('winMessage').style.display = 'block';
-}
-
-function showTimeoutMessage() {
-    clearInterval(timer);
-    document.getElementById('timeoutMessage').style.display = 'block';
-}
-
 function resetGame() {
-    matchedPairs = 0;
-    attempts = 0;
-    seconds = 0;
-    isGameStarted = false;
-    flippedCards = [];
-    clearInterval(timer);
-    document.getElementById('attempts').textContent = '0';
-    document.getElementById('timer').textContent = '00:00';
-    document.getElementById('winMessage').style.display = 'none';
-    document.getElementById('timeoutMessage').style.display = 'none';
-    generateNumbers();
-    createGrid();
+    initializeGame();
 }
 
-generateNumbers();
-createGrid();
-</script></body></html>
+// Initialize game when page loads
+initializeGame();
+</script>
+</body>
+</html>
